@@ -15,7 +15,6 @@ class ChromaDBLoader(Loader):
 
 
 def save_to_chroma(chunks: list, collection: chromadb.Collection):
-    """Сохраняет чанки в ChromaDB"""
     documents = []
     ids = []
     for i, chunk in enumerate(chunks):
