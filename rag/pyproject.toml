@@ -1,6 +1,6 @@
 [project]
 name = "ragorez-rag"
-version = "0.1.2"
+version = "0.1.3"
 description = "Rag"
 readme = "README.md"
 authors = [{name = "Roman Stepanov", email = "ya.barrymor@yandex.ru"}]

@@ -24,7 +24,8 @@ class OpenRouterProvider(LLMProvider):
                  prompt: str,
                  system_message: Optional[str] = None,
                  temperature: float = 0.7,
-                 max_tokens: int = 1000) -> str:
+                 max_tokens: int = 1000,
+                 **kwargs) -> str:
         messages = []
         if system_message:
             messages.append({"role": "system", "content": system_message})

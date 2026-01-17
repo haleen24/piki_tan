@@ -2,7 +2,7 @@ from typing import Optional
 
 import requests
 
-from llm_provider import LLMProvider
+from .llm_provider import LLMProvider
 
 
 class HuggingFaceProvider(LLMProvider):
@@ -21,7 +21,8 @@ class HuggingFaceProvider(LLMProvider):
                  prompt: str,
                  system_message: Optional[str] = None,
                  temperature: float = 0.7,
-                 max_tokens: int = 1000) -> str:
+                 max_tokens: int = 1000,
+                 **kwargs) -> str:
         if system_message:
             full_prompt = f"{system_message}\n\n{prompt}"
         else:

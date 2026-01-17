@@ -9,5 +9,6 @@ class LLMProvider(ABC):
                  prompt: str,
                  system_message: Optional[str] = None,
                  temperature: float = 0.7,
-                 max_tokens: int = 1000) -> str:
+                 max_tokens: int = 1000,
+                 **kwargs) -> str:
         pass

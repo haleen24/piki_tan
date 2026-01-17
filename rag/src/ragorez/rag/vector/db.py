@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import List, Any
+
+from attr import dataclass
 
 
-class SearchResponse:
-    def __init__(self, answers: List[str], full_response: Any = None):
-        self.answers = answers
-        self.full_response = full_response
+@dataclass
+class VectorSearchResponse:
+    answers: list[str]
+    full_response: str = None
 
 
-class DataBaseProvider(ABC):
+class VectorDataBaseProvider(ABC):
 
     @abstractmethod
-    def search(self, query: str, n_results: int = 5) -> SearchResponse:
+    def search(self, query: str, n_results: int = 5, **kwargs) -> VectorSearchResponse:
         pass
