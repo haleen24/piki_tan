@@ -26,7 +26,8 @@ class GraphRAGPipeline:
     def process(self, question: str, chunks: list[str]) -> GraphRAGPipelineResult:
         knowledge = self.knowledge_extractor.extract_batch(chunks)
         self.graph_db.add_knowledge(knowledge)
-        sources = self.graph_db.search(question).get_sources()
+        knowledge = self.knowledge_extractor.extract(question)
+        sources = self.graph_db.search(knowledge).get_sources()
         return GraphRAGPipelineResult(additional_context=list(sources))
 
 

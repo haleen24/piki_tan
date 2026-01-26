@@ -1,27 +1,21 @@
-from typing import List
-
 from neo4j import Driver
 from sentence_transformers import SentenceTransformer
 
 from .db import GraphDataBaseProvider
-from .knowledge_extraction import KnowledgeExtractor
-from .model import GraphSearchResponse, KnowledgeExtraction, Relation, Entity
+from .model import GraphSearchResponse, Relation, Entity, KnowledgeExtraction
 
 
 class TextNeo4jDataBaseProvider(GraphDataBaseProvider):
     def __init__(
             self,
             driver: Driver,
-            knowledge_extractor: KnowledgeExtractor,
             n_results: int = 5
     ):
         self.driver = driver
-        self.knowledge_extractor = knowledge_extractor
         self.n_results = n_results
 
-    def search(self, query: str, n_results: int = None, **kwargs) -> GraphSearchResponse:
-        extraction = self.knowledge_extractor.extract(query)
-        query_entities = [entity.text for entity in extraction.entities]
+    def search(self, knowledge: KnowledgeExtraction, n_results: int = None, **kwargs) -> GraphSearchResponse:
+        query_entities = [entity.text for entity in knowledge.entities]
         n_results = n_results if n_results is not None else self.n_results
         with self.driver.session() as session:
             result = session.run("""
@@ -55,9 +49,9 @@ class TextNeo4jDataBaseProvider(GraphDataBaseProvider):
                 ))
             return GraphSearchResponse(relations=relations, full_response=result.consume())
 
-    def add_knowledge(self, extractions: List[KnowledgeExtraction], **kwargs):
+    def add_knowledge(self, knowledge: list[KnowledgeExtraction], **kwargs):
         with self.driver.session() as session:
-            for extraction in extractions:
+            for extraction in knowledge:
                 entity_ids = {}
                 for entity in extraction.entities:
                     result = session.run("""
@@ -100,11 +94,10 @@ class SemanticNeo4JDataBaseProvider(TextNeo4jDataBaseProvider):
     def __init__(
             self,
             driver: Driver,
-            knowledge_extractor: KnowledgeExtractor,
             embedding_model: SentenceTransformer,
             n_results: int = 5
     ):
-        super().__init__(driver, knowledge_extractor, n_results)
+        super().__init__(driver, n_results)
         self.embedding_model = embedding_model
         self._setup_vector_index()
 
@@ -119,11 +112,11 @@ class SemanticNeo4JDataBaseProvider(TextNeo4jDataBaseProvider):
                 }}
             """, dimensions=self.embedding_model.get_sentence_embedding_dimension())
 
-    def search(self, query: str, n_results: int = None, **kwargs) -> GraphSearchResponse:
-        extraction = self.knowledge_extractor.extract(query)
+    def search(self, knowledge: KnowledgeExtraction, n_results: int = None, **kwargs) -> GraphSearchResponse:
         n_results = n_results if n_results is not None else self.n_results
+        relations = []
         with self.driver.session() as session:
-            for entity in extraction.entities:
+            for entity in knowledge.entities:
                 query_embedding = self.embedding_model.encode(entity.text)
                 result = session.run("""
                     CALL db.index.vector.queryNodes(
@@ -142,7 +135,6 @@ class SemanticNeo4JDataBaseProvider(TextNeo4jDataBaseProvider):
                     ORDER BY score DESC
                     LIMIT $limit
                 """, top_k=n_results, embedding=query_embedding, limit=n_results)
-                relations = []
                 for record in result:
                     subject = Entity(
                         text=record["subject_text"],
@@ -160,8 +152,8 @@ class SemanticNeo4JDataBaseProvider(TextNeo4jDataBaseProvider):
                     ))
             return GraphSearchResponse(relations=relations, full_response=result.consume())
 
-    def add_knowledge(self, extractions: List[KnowledgeExtraction], **kwargs):
-        for extraction in extractions:
+    def add_knowledge(self, knowledge: list[KnowledgeExtraction], **kwargs):
+        for extraction in knowledge:
             for entity in extraction.entities:
                 entity.embedding = self.embedding_model.encode(entity.text).tolist()
-        super().add_knowledge(extractions, **kwargs)
+        super().add_knowledge(knowledge, **kwargs)

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from itertools import chain
-from typing import List, Iterable
+from typing import Iterable
 
 from .knowledge_extraction import KnowledgeExtraction
 from .model import GraphSearchResponse
@@ -9,11 +9,11 @@ from .model import GraphSearchResponse
 class GraphDataBaseProvider(ABC):
 
     @abstractmethod
-    def search(self, query: str, n_results: int = None, **kwargs) -> GraphSearchResponse:
+    def search(self, knowledge: KnowledgeExtraction, n_results: int = None, **kwargs) -> GraphSearchResponse:
         pass
 
     @abstractmethod
-    def add_knowledge(self, extractions: List[KnowledgeExtraction], **kwargs):
+    def add_knowledge(self, knowledge: list[KnowledgeExtraction], **kwargs):
         pass
 
 
@@ -30,10 +30,10 @@ class GraphDataBaseMultiStrategyProvider(GraphDataBaseProvider):
         self.search_dbs = search_db if isinstance(search_db, list) else [search_db]
         self.insert_dbs = insert_db if isinstance(insert_db, list) else [insert_db]
 
-    def add_knowledge(self, extractions: List[KnowledgeExtraction], **kwargs):
+    def add_knowledge(self, knowledge: list[KnowledgeExtraction], **kwargs):
         for db in self.insert_dbs:
-            db.add_knowledge(extractions, **kwargs)
+            db.add_knowledge(knowledge, **kwargs)
 
-    def search(self, query: str, n_results: int = None, **kwargs) -> GraphSearchResponse:
+    def search(self, knowledge: KnowledgeExtraction, n_results: int = None, **kwargs) -> GraphSearchResponse:
         return union_graph_search_response(
-            (db.search(query, n_results, **kwargs) for db in self.search_dbs))
+            (db.search(knowledge, n_results, **kwargs) for db in self.search_dbs))

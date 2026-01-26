@@ -1,6 +1,6 @@
 [project]
 name = "ragorez-scrapper"
-version = "0.1.0"
+version = "0.1.1"
 description = "Scrapper"
 readme = "README.md"
 authors = [{name = "Roman Stepanov", email = "ya.barrymor@yandex.ru"}]
@@ -23,11 +23,5 @@ Repository = "https://github.com/haleen24/piki_tan"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["ragorez.scrapper"]
-
-[tool.setuptools.package-dir]
-ragorez = "src/ragorez"
-
-[tool.setuptools.package-data]
-"*" = ["*.txt", "*.json", "*.yaml"]
+[tool.setuptools.packages.find]
+where = ["src"]
