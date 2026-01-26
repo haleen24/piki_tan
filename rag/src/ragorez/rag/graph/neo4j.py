@@ -150,7 +150,7 @@ class SemanticNeo4JDataBaseProvider(TextNeo4jDataBaseProvider):
                         object=object_,
                         source=record["source"] or ""
                     ))
-            return GraphSearchResponse(relations=relations, full_response=result.consume())
+            return GraphSearchResponse(relations=relations)
 
     def add_knowledge(self, knowledge: list[KnowledgeExtraction], **kwargs):
         for extraction in knowledge:
