@@ -3,8 +3,12 @@ import warnings
 from tqdm import tqdm
 
 from .etl.extraction import Extractor
-from .etl.load import Loader
+from .etl.load import Loader, Chunk
 from .etl.transformation import Cleaner, Transformator
+
+
+def generate_chunk_id(source: str, number: int) -> str:
+    return f"{source}-{number}"
 
 
 class ScrapperPipeline:
@@ -39,6 +43,9 @@ class ScrapperPipeline:
             text = extractor.extract(resource)
             for cleaner in self.cleaners:
                 text = cleaner.clean(text)
-            chunks = self.transformator.get_chunks(text)
+            text_chunks = self.transformator.get_chunks(text)
+            chunks = []
+            for i, text_chunk in enumerate(text_chunks):
+                chunks.append(Chunk(text=text_chunk, id=generate_chunk_id(resource, i)))
             for loader in self.loaders:
                 loader.save(chunks)
